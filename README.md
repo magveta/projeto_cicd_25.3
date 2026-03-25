@@ -5,3 +5,5 @@ Alunos do grupo:
 Lucas Willians de Souza Magueta, 
 Cleverson Amorim de Lima,
 José Luiz Santos.
+
+Funcionalidades da calculadora: Soma, subtração e multiplicação.

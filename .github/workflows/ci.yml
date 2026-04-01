@@ -11,6 +11,11 @@ jobs:
   testar:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
     steps:
       - name: Baixar o código
         uses: actions/checkout@v4
@@ -18,15 +23,30 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache de dependências
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
       - name: Instalar dependências
-        run: pip install pytest
+        run: pip install -r requirements.txt
 
-      - name: Rodar os testes
-        run: pytest test_operacoes.py -v
-      
+      - name: Instalar ferramentas de teste
+        run: pip install pytest pytest-cov ruff
+
+      - name: Rodar lint
+        run: ruff check .
+
+      - name: Rodar testes com cobertura
+        run: pytest --cov=. --cov-report=xml -v
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.python.coverage.reportPaths=coverage.xml

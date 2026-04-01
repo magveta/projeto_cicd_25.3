@@ -24,3 +24,8 @@ jobs:
 
       - name: Rodar os testes
         run: pytest test_operacoes.py -v
+      
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: bcdc0178e75cabd33d1b45e3244468a937942cbd

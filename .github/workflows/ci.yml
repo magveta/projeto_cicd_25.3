@@ -1,4 +1,3 @@
-
 name: CI - Calculadora FATEC
 
 on:
@@ -8,7 +7,28 @@ on:
     branches: [ main ]
 
 jobs:
-  testar:
+
+  lint:
+    name: Lint (Ruff)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: pip install ruff
+
+      - name: Rodar lint
+        run: ruff check .
+
+  test:
+    name: Testes
     runs-on: ubuntu-latest
 
     strategy:
@@ -35,13 +55,30 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Instalar ferramentas de teste
-        run: pip install pytest pytest-cov ruff
-
-      - name: Rodar lint
-        run: ruff check .
+        run: pip install pytest pytest-cov
 
       - name: Rodar testes com cobertura
         run: pytest --cov=. --cov-report=xml -v
+
+      - name: Salvar artefato de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  sonar:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    needs: test  # só roda se os testes passarem
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Baixar artefato de cobertura
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
